@@ -1,3 +1,8 @@
+#########################################################
+#       This file is managed by Puppet
+#       Manual changes will be overwritten
+#########################################################
+
 user <%= @user %>;
 worker_processes <%= @worker_processes %>;
 error_log <%= @error_log %>;
@@ -48,9 +53,11 @@ http {
 
         <% (@locations.sort_by! { |hsh| hsh['order'] }).each do |location| %><% if location['redirect'] %>
         location <% if location['exact'] %><%= '= ' %><% end %><%= location['path'] %> {
+          # Order defined in Puppet: <%= location['order'] %>
           return 301 https://$host:<%= @port_https %>$request_uri;
         }<% else %>
         location <% if location['exact'] %><%= '= ' %><% end %><%= location['path'] %> {
+          # Order defined in Puppet: <%= location['order'] %>
           proxy_pass http://<%= location['http_upstream'] %>;
           proxy_set_header Host            $host;
           proxy_set_header X-Real-IP       $remote_addr;
@@ -85,6 +92,7 @@ http {
 
         <% (@locations.sort_by! { |hsh| hsh['order'] }).each do |location| %>
         location <% if location['exact'] %><%= '= ' %><% end %><%= location['path'] %> {
+          # Order defined in Puppet: <%= location['order'] %>
           proxy_pass https://<%= location['https_upstream'] %>;
           proxy_set_header Host            $host;
           proxy_set_header X-Real-IP       $remote_addr;
