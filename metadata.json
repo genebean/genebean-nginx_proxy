@@ -1,0 +1,20 @@
+{
+  "name": "genebean-nginx_proxy",
+  "version": "1.0.0",
+  "author": "Gene Liverman",
+  "summary": "This module helps create a simple Nginx proxy",
+  "license": "BSD-3-Clause",
+  "source": "https://github.com:genebean/genebean-nginx_proxy.git",
+  "project_page": "https://github.com/genebean/genebean-nginx_proxy",
+  "issues_url": "https://github.com/genebean/genebean-nginx_proxy/issues",
+  "tags": ["nginx"],
+  "dependencies": [
+  ],
+  "requirements": [
+    { "name": "puppet", "version_requirement": ">= 2.7.0 < 5.0.0" }
+  ],
+  "operatingsystem_support": [
+    { "operatingsystem": "CentOS",     "operatingsystemrelease": [ "5", "6", "7" ] },
+    { "operatingsystem": "RedHat",     "operatingsystemrelease": [ "5", "6", "7" ] }
+  ]
+}

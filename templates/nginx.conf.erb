@@ -1,0 +1,103 @@
+user <%= @user %>;
+worker_processes <%= @worker_processes %>;
+error_log <%= @error_log %>;
+pid <%= @pid_file %>;
+
+# Load dynamic modules. See /usr/share/nginx/README.dynamic.
+include <%= @dynamic_modules %>;
+
+events {
+    worker_connections <%= @worker_connections %>;
+}
+
+http {
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  <%= @access_log %>  main;
+
+    sendfile            on;
+    tcp_nopush          on;
+    tcp_nodelay         on;
+    keepalive_timeout   65;
+    types_hash_max_size 2048;
+
+    include             <%= @mime_include %>;
+    default_type        application/octet-stream;
+
+    # Load modular configuration files from the /etc/nginx/conf.d directory.
+    # See http://nginx.org/en/docs/ngx_core_module.html#include
+    # for more information.
+    include /etc/nginx/conf.d/*.conf;
+
+    <% @upstreams.each do |upstream| %>
+    upstream <%= upstream['title'] %> {<% if upstream['lb_method'] %>
+        <%= "#{upstream['lb_method']};" %><% end %><% upstream['servers'].each do |server| %>
+        server <%= server %>;<% end %>
+    }
+    <% end %>
+
+    server {
+        listen       <%= @port_http %>;
+        server_name  <%= @server_name %>;
+        root         <%= @docroot %>;
+
+        # Load configuration files for the default server block.
+        include /etc/nginx/default.d/*.conf;
+
+        <% (@locations.sort_by! { |hsh| hsh['order'] }).each do |location| %><% if location['redirect'] %>
+        location <% if location['exact'] %><%= '= ' %><% end %><%= location['path'] %> {
+          return 301 https://$host:<%= @port_https %>$request_uri;
+        }<% else %>
+        location <% if location['exact'] %><%= '= ' %><% end %><%= location['path'] %> {
+          proxy_pass http://<%= location['http_upstream'] %>;
+          proxy_set_header Host            $host;
+          proxy_set_header X-Real-IP       $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }<% end %>
+        <% end %>
+        error_page 404 /404.html;
+            location = /40x.html {
+        }
+
+        error_page 500 502 503 504 /50x.html;
+            location = /50x.html {
+        }
+    }
+
+# Settings for a TLS enabled server.
+
+    server {
+        listen       <%= @port_https %> ssl http2;
+        server_name  <%= @server_name %>;
+        root         <%= @docroot %>;
+
+        ssl_certificate "<%= @ssl_certificate %>";
+        ssl_certificate_key "<%= @ssl_certificate_key %>";
+        ssl_session_cache <%= @ssl_session_cache %>;
+        ssl_session_timeout  <%= @ssl_session_timeout %>;
+        ssl_ciphers <%= @ssl_ciphers %>;
+        ssl_prefer_server_ciphers <%= @ssl_prefer_server_ciphers %>;
+
+        # Load configuration files for the default server block.
+        include /etc/nginx/default.d/*.conf;
+
+        <% (@locations.sort_by! { |hsh| hsh['order'] }).each do |location| %>
+        location <% if location['exact'] %><%= '= ' %><% end %><%= location['path'] %> {
+          proxy_pass https://<%= location['https_upstream'] %>;
+          proxy_set_header Host            $host;
+          proxy_set_header X-Real-IP       $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+        <% end %>
+        error_page 404 /404.html;
+            location = /40x.html {
+        }
+
+        error_page 500 502 503 504 /50x.html;
+            location = /50x.html {
+        }
+    }
+
+}
