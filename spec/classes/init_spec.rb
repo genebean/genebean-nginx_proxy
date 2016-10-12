@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe 'nginx_proxy' do
 
-  describe ' with sample settings' do
+  describe 'with sample settings' do
 
     context 'on Red Hat 7' do
       let :facts do
@@ -93,6 +93,76 @@ describe 'nginx_proxy' do
       it 'should order all locations sections numerically' do
          should contain_file('/etc/nginx/nginx.conf').with_content(/# Order.*: 005\n\s+return(.|\n)*# Order.*: 999\n\s+proxy_pass.*_http;\n(.|\n)*# Order.*: 005\n\s+proxy_pass.*_https;(.|\n)*# Order.*: 999\n\s+proxy_pass.*_https;/)
       end
+
+    end
+
+  end
+
+  describe 'with two require packages' do
+
+    context 'on Red Hat 7' do
+      let :facts do
+        {
+          :kernel                    => 'Linux',
+          :osfamily                  => 'RedHat',
+          :operatingsystem           => 'RedHat',
+          :operatingsystemmajrelease => '7',
+        }
+      end
+
+      let :pre_condition do
+        "package {'nginx':
+           ensure => installed,
+         }
+
+         package {'httpd':
+           ensure => installed,
+         }
+
+         class {'::nginx_proxy':
+           required_packages => ['nginx', 'httpd'],
+         }"
+
+      end
+
+      it { is_expected.to compile }
+
+      it {
+        should contain_class('nginx_proxy').with(
+          'required_packages' => '["nginx", "httpd"]',
+        )
+      }
+
+    end
+
+  end
+
+  describe 'with no required packages' do
+
+    context 'on Red Hat 7' do
+      let :facts do
+        {
+          :kernel                    => 'Linux',
+          :osfamily                  => 'RedHat',
+          :operatingsystem           => 'RedHat',
+          :operatingsystemmajrelease => '7',
+        }
+      end
+
+      let :pre_condition do
+        "class {'::nginx_proxy':
+           required_packages => [],
+         }"
+
+      end
+
+      it { is_expected.to compile }
+
+      it {
+        should contain_class('nginx_proxy').with(
+          'required_packages' => '[]',
+        )
+      }
 
     end
 
