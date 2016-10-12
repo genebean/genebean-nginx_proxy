@@ -1,28 +1,6 @@
 # Creates a simple nginx.conf for a reverse proxy setup
-# nginx_proxy {
-#   $upstreams = [
-#     {
-#       title   => 'old_backend_http',
-#       servers => [
-#         '127.0.0.1:8081',
-#       ],
-#     },
-#     {
-#       title   => 'old_backend_https',
-#       servers => [
-#         '127.0.0.1:8444',
-#       ],
-#     },
-#     {
-#       title     => 'new_backend_https',
-#       lb_method => 'ip_hash',
-#       servers   => [
-#         '127.0.0.1:9444',
-#         '127.0.0.1:10444',
-#       ],
-#     },
-#   ],
-# }
+# See exammple.pp for sample usage.
+#
 class nginx_proxy (
   $access_log                = '/var/log/nginx/access.log',
   $config_file               = '/etc/nginx/nginx.conf',
